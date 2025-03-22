@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIチャット</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; }
+        #chat-container { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
+        .message { margin: 5px 0; padding: 8px; border-radius: 5px; }
+        .user { background: #d1e7fd; text-align: right; }
+        .bot { background: #e7e7e7; text-align: left; }
+        #input-container { display: flex; margin-top: 10px; }
+        #user-input { flex: 1; padding: 8px; }
+        button { padding: 8px; }
+    </style>
+    <script>
+        async function getBotResponse(input) {
+            const response = await fetch("https://api.openai.com/v1/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer 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"
+                },
+                body: JSON.stringify({
+                    model: "text-davinci-003",
+                    prompt: input,
+                    max_tokens: 100
+                })
+            });
+            const data = await response.json();
+            return data.choices[0].text.trim();
+        }
+
+        async function sendMessage() {
+            const userInput = document.getElementById("user-input");
+            const chatContainer = document.getElementById("chat-container");
+            const messageText = userInput.value.trim();
+            if (!messageText) return;
+
+            const userMessage = document.createElement("div");
+            userMessage.className = "message user";
+            userMessage.textContent = messageText;
+            chatContainer.appendChild(userMessage);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            userInput.value = "";
+
+            const botMessage = document.createElement("div");
+            botMessage.className = "message bot";
+            botMessage.textContent = "考え中...";
+            chatContainer.appendChild(botMessage);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const botResponse = await getBotResponse(messageText);
+            botMessage.textContent = botResponse;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+</head>
+<body>
+    <h2>AIチャット</h2>
+    <div id="chat-container"></div>
+    <div id="input-container">
+        <input type="text" id="user-input" placeholder="メッセージを入力" onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">送信</button>
+    </div>
+</body>
+</html>
